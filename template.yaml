@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AWS
+
+  Sample SAM Template for AWS
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  LiveDstApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      Domain:
+        DomainName: livedst-api.dev.swx-trec.com
+        CertificateArn: !ImportValue accountCertificateArn
+        Route53:
+          HostedZoneName: "dev.swx-trec.com."
+
+  LiveDstFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: livedst/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Events:
+        LiveDst:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /livedst
+            Method: get
+            RestApiId: !Ref LiveDstApi
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  LiveDstApi:
+    Description: "API Gateway endpoint URL for for the LiveDst function"
+    Value: "https://livedst-api.dev.swx-trec.com/"
+  LiveDstFunction:
+    Description: "LiveDst Lambda Function ARN"
+    Value: !GetAtt LiveDstFunction.Arn
+  LiveDstFunctionIamRole:
+    Description: "Implicit IAM Role created for the LiveDst function"
+    Value: !GetAtt LiveDstFunctionRole.Arn
